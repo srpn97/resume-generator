@@ -1,4 +1,5 @@
 // types/resume.ts
+
 export interface ResumeData {
     personalInfo: {
         name: string;
@@ -6,9 +7,9 @@ export interface ResumeData {
         email: string;
         phone: string;
         location: string;
-        website: string;
-        github: string;
-        linkedin: string;
+        website?: string;
+        github?: string;
+        linkedin?: string;
     };
     summary: string;
     skills: {
@@ -38,4 +39,15 @@ export interface ResumeData {
         dateRange: string;
         details: string[];
     }>;
+}
+
+export interface StyleCustomization {
+    margins: string;
+    spacing: string;
+    fontSize: string;
+    fontFamily: string;
+    titleBreak: {
+        education: boolean;
+        experience: boolean;
+    };
 }

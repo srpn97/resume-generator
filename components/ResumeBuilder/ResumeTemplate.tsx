@@ -1,213 +1,280 @@
-// components/ResumeBuilder/ResumeTemplate.tsx
 'use client';
 
 import React from 'react';
-import { Mail, Phone, MapPin, Globe, Github, Linkedin } from 'lucide-react';
-import { ResumeData } from '@/types/resume';
+import { Mail, Phone, MapPin, Globe, Github, Linkedin, Download } from 'lucide-react';
+import { ResumeData, StyleCustomization } from '@/types/resume';
+import { generatePDF } from '@/lib/utils';
 
 interface ResumeTemplateProps {
-    content: string;
+    content: ResumeData;
     style: 'classic' | 'modern';
+    styleCustomization: StyleCustomization;
+    onSectionClick: (section: string) => void;
 }
 
-const A4_STYLES = {
-    width: '210mm',
-    height: '297mm',
-    padding: '15mm 20mm',
-    margin: '10mm auto',
-    backgroundColor: 'white',
-    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-};
+interface ModernTemplateProps {
+    content: ResumeData;
+    styleCustomization: StyleCustomization;
+    onSectionClick: (section: string) => void;
+}
 
-const ModernTemplate: React.FC<{ content: ResumeData }> = ({ content }) => {
+const ModernTemplate: React.FC<ModernTemplateProps> = ({
+    content,
+    styleCustomization,
+    onSectionClick,
+}) => {
+    const renderSection = (title: string, children: React.ReactNode, sectionKey: string) => (
+        <section
+            className="mb-8 hover:bg-gray-50 cursor-pointer rounded-md transition-colors page-break-inside-auto"
+            onClick={() => onSectionClick(sectionKey)}
+            style={{
+                margin: '0 0 2rem 0',
+                pageBreakInside: 'auto',
+            }}
+        >
+            <h2
+                className="font-bold page-break-after-avoid"
+                style={{
+                    borderBottom: '1px solid black',
+                    paddingBottom: '0.5rem',
+                    marginBottom: '1rem',
+                    pageBreakAfter: 'avoid',
+                }}
+            >
+                {title}
+            </h2>
+            <div className="page-break-inside-auto">{children}</div>
+        </section>
+    );
+
     return (
-        <div className="font-sans text-[#1A1A1A]">
-            {/* Header Section */}
-            <div className="text-center mb-4">
-                <h1 className="text-2xl font-bold mb-1">{content.personalInfo.name}</h1>
-                <div className="text-sm text-gray-600 italic mb-3">
-                    {content.personalInfo.title}
-                </div>
-
-                {/* Contact Info */}
-                <div className="flex justify-center items-center gap-4 text-sm flex-wrap">
-                    <a
-                        href={`mailto:${content.personalInfo.email}`}
-                        className="flex items-center gap-1"
-                    >
-                        <Mail size={16} />
-                        {content.personalInfo.email}
-                    </a>
-                    <a
-                        href={`tel:${content.personalInfo.phone}`}
-                        className="flex items-center gap-1"
-                    >
-                        <Phone size={16} />
-                        {content.personalInfo.phone}
-                    </a>
-                    <span className="flex items-center gap-1">
-                        <MapPin size={16} />
-                        {content.personalInfo.location}
-                    </span>
-                    <a
-                        href={content.personalInfo.website}
-                        className="flex items-center gap-1"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Globe size={16} />
-                        {content.personalInfo.website}
-                    </a>
-                    <a
-                        href={content.personalInfo.github}
-                        className="flex items-center gap-1"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Github size={16} />
-                        {content.personalInfo.github.split('/').pop()}
-                    </a>
-                    <a
-                        href={content.personalInfo.linkedin}
-                        className="flex items-center gap-1"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Linkedin size={16} />
-                        {content.personalInfo.linkedin.split('/').pop()}
-                    </a>
+        <div
+            style={{
+                fontFamily: styleCustomization.fontFamily,
+                fontSize: styleCustomization.fontSize,
+                lineHeight: styleCustomization.spacing,
+                margin: 0,
+                padding: 0,
+            }}
+        >
+            {/* Personal Info without section title */}
+            <div className="text-center mb-6 print:break-inside-avoid page-break-avoid">
+                <h1 className="text-2xl font-bold mb-1 text-gray-900">
+                    {content.personalInfo.name}
+                </h1>
+                <div className="text-gray-600 mb-4">{content.personalInfo.title}</div>
+                <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-gray-700">
+                    <div className="flex items-center gap-1">
+                        <Mail className="w-4 h-4" />
+                        <span>{content.personalInfo.email}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Phone className="w-4 h-4" />
+                        <span>{content.personalInfo.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>{content.personalInfo.location}</span>
+                    </div>
+                    {content.personalInfo.github && (
+                        <div className="flex items-center gap-1">
+                            <Github className="w-4 h-4" />
+                            <span>{content.personalInfo.github}</span>
+                        </div>
+                    )}
+                    {content.personalInfo.linkedin && (
+                        <div className="flex items-center gap-1">
+                            <Linkedin className="w-4 h-4" />
+                            <span>{content.personalInfo.linkedin}</span>
+                        </div>
+                    )}
+                    {content.personalInfo.website && (
+                        <div className="flex items-center gap-1">
+                            <Globe className="w-4 h-4" />
+                            <span>{content.personalInfo.website}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Summary Section */}
-            <div className="mb-6">
-                <h2 className="font-bold border-b border-black mb-2">Summary</h2>
-                <p className="text-sm">{content.summary}</p>
-            </div>
+            {/* Summary */}
+            {content.summary &&
+                renderSection(
+                    'Summary',
+                    <p className="text-justify text-gray-700">{content.summary}</p>,
+                    'summary'
+                )}
 
-            {/* Skills Section */}
-            <div className="mb-6">
-                <h2 className="font-bold border-b border-black mb-2">SKILLS</h2>
-                <div className="text-sm">
-                    <div className="mb-1">
-                        <span className="font-bold">Languages:</span>{' '}
-                        {content.skills.languages.join(', ')}
-                    </div>
-                    <div className="mb-1">
-                        <span className="font-bold">Frameworks:</span>{' '}
-                        {content.skills.frameworks.join(', ')}
-                    </div>
-                    <div className="mb-1">
-                        <span className="font-bold">Databases:</span>{' '}
-                        {content.skills.databases.join(', ')}
-                    </div>
-                    <div className="mb-1">
-                        <span className="font-bold">Cloud/DevOps:</span>{' '}
-                        {content.skills.cloudDevOps.join(', ')}
-                    </div>
-                    <div className="mb-1">
-                        <span className="font-bold">Tools:</span> {content.skills.tools.join(', ')}
-                    </div>
-                    <div className="mb-1">
-                        <span className="font-bold">Methodologies:</span>{' '}
-                        {content.skills.methodologies.join(', ')}
-                    </div>
-                </div>
-            </div>
-
-            {/* Education Section */}
-            <div className="mb-6">
-                <h2 className="font-bold border-b border-black mb-2">EDUCATION</h2>
-                {content.education.map((edu, index) => (
-                    <div key={index} className="text-sm mb-3">
-                        <div className="flex justify-between mb-1">
-                            <div>
-                                <span className="font-bold">{edu.university}</span>, {edu.degree}
+            {/* Experience */}
+            {content.experience?.length > 0 &&
+                renderSection(
+                    'Experience',
+                    <div className="space-y-4">
+                        {content.experience.map((exp, index) => (
+                            <div key={index} className="page-break-avoid">
+                                <div className="flex justify-between items-start mb-1">
+                                    <div>
+                                        <div className="font-bold text-gray-900">{exp.title}</div>
+                                        <div className="text-gray-700">{exp.company}</div>
+                                    </div>
+                                    <div className="text-right text-gray-600">
+                                        <div>{exp.dateRange}</div>
+                                        <div>{exp.location}</div>
+                                    </div>
+                                </div>
+                                <ul className="list-disc ml-4 mt-2 space-y-1">
+                                    {exp.achievements.map((achievement, i) => (
+                                        <li key={i} className="text-gray-700 text-sm">
+                                            {achievement}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            <div>
-                                {edu.location} | {edu.dateRange}
-                            </div>
-                        </div>
-                        <div className="ml-4">
-                            <span className="font-bold">Relevant Coursework:</span>{' '}
-                            {edu.coursework.join(', ')}
-                        </div>
-                    </div>
-                ))}
-            </div>
+                        ))}
+                    </div>,
+                    'experience'
+                )}
 
-            {/* Professional Experience Section */}
-            <div className="mb-6">
-                <h2 className="font-bold border-b border-black mb-2">PROFESSIONAL EXPERIENCE</h2>
-                {content.experience.map((exp, index) => (
-                    <div key={index} className="text-sm mb-4">
-                        <div className="flex justify-between mb-1">
-                            <div>
-                                <span className="font-bold">{exp.title}</span>, {exp.company}
+            {/* Education */}
+            {content.education?.length > 0 &&
+                renderSection(
+                    'Education',
+                    <div className="space-y-4">
+                        {content.education.map((edu, index) => (
+                            <div key={index} className="page-break-avoid">
+                                <div className="flex justify-between items-start mb-1">
+                                    <div>
+                                        <div className="font-bold text-gray-900">
+                                            {edu.university}
+                                        </div>
+                                        <div className="text-gray-700">{edu.degree}</div>
+                                    </div>
+                                    <div className="text-right text-gray-600">
+                                        <div>{edu.dateRange}</div>
+                                        <div>{edu.location}</div>
+                                    </div>
+                                </div>
+                                {edu.coursework.length > 0 && (
+                                    <div className="mt-1 text-sm text-gray-700">
+                                        <span className="font-semibold">Coursework: </span>
+                                        {edu.coursework.join(', ')}
+                                    </div>
+                                )}
                             </div>
-                            <div>
-                                {exp.location} | {exp.dateRange}
+                        ))}
+                    </div>,
+                    'education'
+                )}
+
+            {/* Skills */}
+            {content.skills &&
+                renderSection(
+                    'Skills',
+                    <div className="space-y-2">
+                        {Object.entries(content.skills).map(
+                            ([category, skills]) =>
+                                skills.length > 0 && (
+                                    <div key={category} className="page-break-avoid text-gray-700">
+                                        <span className="font-bold capitalize text-gray-900">
+                                            {category.replace(/([A-Z])/g, ' $1').trim()}:
+                                        </span>{' '}
+                                        <span className="text-sm">{skills.join(', ')}</span>
+                                    </div>
+                                )
+                        )}
+                    </div>,
+                    'skills'
+                )}
+
+            {/* Projects */}
+            {content.projects?.length > 0 &&
+                renderSection(
+                    'Projects',
+                    <div className="space-y-4">
+                        {content.projects.map((project, index) => (
+                            <div key={index} className="page-break-avoid">
+                                <div className="flex justify-between items-start mb-1">
+                                    <div className="font-bold text-gray-900">{project.name}</div>
+                                    <div className="text-gray-600">{project.dateRange}</div>
+                                </div>
+                                <ul className="list-disc ml-4 mt-2 space-y-1">
+                                    {project.details.map((detail, i) => (
+                                        <li key={i} className="text-gray-700 text-sm">
+                                            {detail}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        </div>
-                        <ul className="list-disc ml-4 space-y-1">
-                            {exp.achievements.map((achievement, i) => (
-                                <li key={i}>{achievement}</li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-
-            {/* Projects Section */}
-            <div className="mb-6">
-                <h2 className="font-bold border-b border-black mb-2">PROJECTS</h2>
-                {content.projects.map((project, index) => (
-                    <div key={index} className="text-sm mb-4">
-                        <div className="flex justify-between mb-1">
-                            <span className="font-bold">{project.name}</span>
-                            <span>{project.dateRange}</span>
-                        </div>
-                        <ul className="list-disc ml-4 space-y-1">
-                            {project.details.map((detail, i) => (
-                                <li key={i}>{detail}</li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-
-            {/* Page Number */}
-            <div className="text-xs text-gray-400 text-right mt-4">Page 1</div>
+                        ))}
+                    </div>,
+                    'projects'
+                )}
         </div>
     );
 };
 
-export function ResumeTemplate({ content, style }: ResumeTemplateProps) {
-    // Parse the JSON string to ResumeData
-    let parsedContent: ResumeData;
-    try {
-        parsedContent = JSON.parse(content);
-    } catch (error) {
-        console.error('Error parsing resume content:', error);
-        // Return a simple error message if parsing fails
-        return (
-            <div className="flex flex-col items-center overflow-auto w-full bg-gray-100 p-4">
-                <div style={A4_STYLES} className="flex items-center justify-center">
-                    <p className="text-red-500">Error parsing resume content</p>
-                </div>
-            </div>
-        );
-    }
+export function ResumeTemplate({
+    content,
+    style,
+    styleCustomization,
+    onSectionClick,
+}: ResumeTemplateProps) {
+    const [isGenerating, setIsGenerating] = React.useState(false);
+
+    const handleGeneratePDF = async () => {
+        try {
+            setIsGenerating(true);
+            await generatePDF('resume-content', {
+                margins: styleCustomization.margins,
+                filename: `${content.personalInfo.name
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')}-resume.pdf`,
+            });
+        } catch (error) {
+            console.error('Failed to generate PDF:', error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     return (
-        <div className="flex flex-col items-center overflow-auto w-full bg-gray-100 p-4">
-            <div style={A4_STYLES}>
-                {style === 'modern' ? (
-                    <ModernTemplate content={parsedContent} />
-                ) : (
-                    // Classic template (you can implement this separately if needed)
-                    <div className="prose max-w-none">{content}</div>
-                )}
+        <div className="flex flex-col items-center w-full bg-gray-100 p-4">
+            {/* Print Button */}
+            <div className="w-[210mm] mb-4 flex justify-end">
+                <button
+                    onClick={handleGeneratePDF}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+                >
+                    <Download size={16} />
+                    {isGenerating ? 'Generating...' : 'Save as PDF'}
+                </button>
+            </div>
+
+            {/* Resume Content */}
+            <div
+                id="resume-content"
+                className="w-[210mm] bg-white shadow-lg"
+                style={{
+                    margin: 0,
+                    padding: 0,
+                    boxSizing: 'border-box',
+                    position: 'relative',
+                }}
+            >
+                <div
+                    style={{
+                        padding: styleCustomization.margins,
+                        margin: 0,
+                        boxSizing: 'border-box',
+                    }}
+                >
+                    <ModernTemplate
+                        content={content}
+                        styleCustomization={styleCustomization}
+                        onSectionClick={onSectionClick}
+                    />
+                </div>
             </div>
         </div>
     );

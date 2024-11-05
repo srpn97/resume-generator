@@ -1,3 +1,4 @@
+// app/layout.tsx
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider';
 import type { Metadata } from 'next';
@@ -14,7 +15,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={inter.className}>
+            <head>
+                <style>{`
+                    @media print {
+                        @page { margin: 0; }
+                        body { margin: 0; }
+                    }
+                `}</style>
+            </head>
+            <body className={`${inter.className} print:!p-0 print:!m-0`}>
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                     <UserProvider>{children}</UserProvider>
                 </ThemeProvider>

@@ -56,3 +56,60 @@
 body {
     @apply bg-background text-foreground;
 }
+
+.bg-grid-pattern {
+    background-image: linear-gradient(to right, rgb(var(--foreground) / 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(var(--foreground) / 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+// @media print {
+//     .page-break {
+//         page-break-before: always;
+//     }
+// }
+@page {
+    size: A4;
+    margin: 0;
+}
+
+#resume-content {
+    background: white;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.page-break-inside-auto {
+    page-break-inside: auto !important;
+}
+
+.page-break-after-avoid {
+    page-break-after: avoid !important;
+}
+
+.page-break-before-auto {
+    page-break-before: auto !important;
+}
+
+/* Prevent blank pages */
+#resume-content:after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+/* Ensure proper spacing between sections */
+section + section {
+    margin-top: 2rem !important;
+}
+
+/* Set proper margins for elements that start on new pages */
+@media print {
+    section {
+        margin-top: 1rem !important;
+    }
+
+    section:first-of-type {
+        margin-top: 0 !important;
+    }
+}
