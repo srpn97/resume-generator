@@ -10,6 +10,7 @@ interface CustomizationPanelProps {
     selectedSection: string | null;
     onUpdate: (updatedContent: Partial<ResumeData>) => void;
     onBack: () => void;
+    onBackToForm: () => void;
     styleCustomization: StyleCustomization;
     onStyleChange: (style: Partial<StyleCustomization>) => void;
 }
@@ -26,6 +27,7 @@ export function CustomizationPanel({
     selectedSection,
     onUpdate,
     onBack,
+    onBackToForm,
     styleCustomization,
     onStyleChange,
 }: CustomizationPanelProps) {
@@ -271,6 +273,15 @@ export function CustomizationPanel({
 
     return (
         <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <button
+                    onClick={onBackToForm}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                >
+                    <ArrowLeft size={16} />
+                    Back to Form
+                </button>
+            </div>
             {selectedSection ? (
                 <>
                     <div className="flex items-center gap-4">

@@ -9,7 +9,7 @@ import type { ResumeData, StyleCustomization } from '@/types/resume';
 
 export function ResumeBuilder() {
     const [jobDescription, setJobDescription] = useState('');
-    const [resumeType, setResumeType] = useState<'classic' | 'modern' | 'modern-pdf'>('modern');
+    const [resumeType, setResumeType] = useState<'classic' | 'modern'>('modern');
     const [generatedResume, setGeneratedResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [resumeTemplate, setResumeTemplate] = useState('');
@@ -26,6 +26,7 @@ export function ResumeBuilder() {
             experience: false,
         },
     });
+    const [showCustomization, setShowCustomization] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +80,7 @@ export function ResumeBuilder() {
 
     const handleSectionClick = (section: string) => {
         setSelectedSection(section);
+        setShowCustomization(true);
     };
 
     const handleFileUpload = async (file: File) => {
@@ -165,7 +167,7 @@ export function ResumeBuilder() {
                     Resume Style
                 </label>
                 <div className="flex gap-4">
-                    {['classic', 'modern', 'modern-pdf'].map((type) => (
+                    {['classic', 'modern'].map((type) => (
                         <button
                             key={type}
                             className={`rounded-md px-4 py-2 text-sm ${
@@ -173,9 +175,7 @@ export function ResumeBuilder() {
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                             }`}
-                            onClick={() =>
-                                setResumeType(type as 'classic' | 'modern' | 'modern-pdf')
-                            }
+                            onClick={() => setResumeType(type as 'classic' | 'modern')}
                         >
                             {type
                                 .split('-')
@@ -192,7 +192,7 @@ export function ResumeBuilder() {
                     Upload Resume Template
                 </label>
                 <div
-                    className={`flex h-32 cursor-pointer items-center justify-center rounded-md border border-dashed ${
+                    className={`flex h-32 items-center justify-center rounded-md border border-dashed ${
                         isDragging
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-muted/50 hover:bg-muted'
@@ -200,9 +200,12 @@ export function ResumeBuilder() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    onClick={openFileSelector}
                 >
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    {/* Split into two clickable areas */}
+                    <div
+                        onClick={openFileSelector}
+                        className="flex flex-col items-center gap-2 text-muted-foreground cursor-pointer w-full h-full justify-center"
+                    >
                         <Upload size={24} />
                         {fileName ? (
                             <span className="text-sm">{fileName}</span>
@@ -238,25 +241,36 @@ export function ResumeBuilder() {
     );
 
     return (
-        <div className="grid h-[calc(100vh-4rem)] grid-cols-2 print:block print:h-auto">
+        <div className="grid h-[calc(100vh-4rem)] grid-cols-2">
             {/* Left Panel */}
-            <div className="border-r border-border p-6 overflow-y-auto print:hidden">
-                {generatedResume ? (
+            <div className="border-r border-border p-6 overflow-y-auto">
+                {generatedResume && showCustomization ? (
                     <CustomizationPanel
                         resumeData={generatedResume}
                         selectedSection={selectedSection}
                         onUpdate={handleContentUpdate}
                         onBack={() => setSelectedSection(null)}
+                        onBackToForm={() => setShowCustomization(false)}
                         styleCustomization={styleCustomization}
                         onStyleChange={handleStyleChange}
                     />
                 ) : (
-                    renderInitialForm()
+                    <div className="space-y-6">
+                        {renderInitialForm()}
+                        {generatedResume && (
+                            <button
+                                onClick={() => setShowCustomization(true)}
+                                className="w-full rounded-md bg-secondary px-4 py-2 text-secondary-foreground hover:bg-secondary/90"
+                            >
+                                Customize Resume
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
 
             {/* Right Panel - Preview */}
-            <div className="bg-muted/30 overflow-auto print:!p-0 print:!m-0 print:bg-white print:overflow-visible">
+            <div className="bg-muted/30 overflow-auto">
                 {generatedResume ? (
                     <ResumeTemplate
                         content={generatedResume}
@@ -265,7 +279,7 @@ export function ResumeBuilder() {
                         onSectionClick={handleSectionClick}
                     />
                 ) : (
-                    <div className="flex h-full items-center justify-center text-muted-foreground print:hidden">
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
                         Preview will appear here
                     </div>
                 )}

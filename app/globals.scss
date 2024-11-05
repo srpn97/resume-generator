@@ -63,71 +63,22 @@ body {
     background-size: 24px 24px;
 }
 
-// @media print {
-//     .page-break {
-//         page-break-before: always;
-//     }
-// }
-@page {
-    size: A4;
-    margin: 0;
-}
-
 #resume-content {
     background: white;
     box-sizing: border-box;
     position: relative;
     min-height: 100%;
     height: auto;
-    visibility: visible !important;
-    display: block !important;
-    margin: 0 auto !important;
-    left: 0 !important;
-    right: 0 !important;
-}
-
-.page-break-inside-auto {
-    page-break-inside: auto !important;
-}
-
-.page-break-after-avoid {
-    page-break-after: avoid !important;
-}
-
-.page-break-before-auto {
-    page-break-before: auto !important;
-}
-
-/* Prevent blank pages */
-#resume-content:after {
-    content: '';
-    display: table;
-    clear: both;
+    margin: 0 auto;
 }
 
 /* Ensure proper spacing between sections */
 section + section {
-    margin-top: 2rem !important;
-}
-
-/* Set proper margins for elements that start on new pages */
-@media print {
-    section {
-        margin-top: 1rem !important;
-    }
-
-    section:first-of-type {
-        margin-top: 0 !important;
-    }
+    margin-top: 2rem;
 }
 
 .resume-section {
-    page-break-inside: avoid;
     margin-bottom: 1.5rem;
-}
-
-.resume-entry {
-    page-break-inside: avoid;
 }
 
 .clearfix::after {
@@ -138,54 +89,4 @@ section + section {
 
 .section + .section {
     margin-top: 1.5rem;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    break-after: avoid-page;
-    page-break-after: avoid;
-}
-
-li {
-    break-inside: avoid-page;
-    page-break-inside: avoid;
-}
-
-@media print {
-    * {
-        -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
-    }
-
-    html,
-    body {
-        width: 210mm;
-        height: 297mm;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    #resume-content {
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 210mm !important;
-        min-height: 297mm !important;
-        box-shadow: none !important;
-    }
-
-    // Remove any potential transforms or positioning on parent elements
-    .flex,
-    .flex-col,
-    .items-center {
-        transform: none !important;
-        position: static !important;
-    }
-}
-
-.resume-content {
-    display: flow-root;
 }
