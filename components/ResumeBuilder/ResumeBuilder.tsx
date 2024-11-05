@@ -9,7 +9,7 @@ import type { ResumeData, StyleCustomization } from '@/types/resume';
 
 export function ResumeBuilder() {
     const [jobDescription, setJobDescription] = useState('');
-    const [resumeType, setResumeType] = useState<'classic' | 'modern'>('modern');
+    const [resumeType, setResumeType] = useState<'classic' | 'modern' | 'modern-pdf'>('modern');
     const [generatedResume, setGeneratedResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [resumeTemplate, setResumeTemplate] = useState('');
@@ -165,7 +165,7 @@ export function ResumeBuilder() {
                     Resume Style
                 </label>
                 <div className="flex gap-4">
-                    {['classic', 'modern'].map((type) => (
+                    {['classic', 'modern', 'modern-pdf'].map((type) => (
                         <button
                             key={type}
                             className={`rounded-md px-4 py-2 text-sm ${
@@ -173,9 +173,14 @@ export function ResumeBuilder() {
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                             }`}
-                            onClick={() => setResumeType(type as 'classic' | 'modern')}
+                            onClick={() =>
+                                setResumeType(type as 'classic' | 'modern' | 'modern-pdf')
+                            }
                         >
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                            {type
+                                .split('-')
+                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ')}
                         </button>
                     ))}
                 </div>

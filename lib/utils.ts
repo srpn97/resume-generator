@@ -24,83 +24,73 @@ export function formatSectionName(name: string): string {
     );
 }
 
-interface Html2PdfOptionsExtended {
-    margin: number;
-    filename: string;
-    image: {
-        type: 'jpeg' | 'png' | 'webp';
-        quality: number;
-    };
-    html2canvas: {
-        scale: number;
-        useCORS: boolean;
-        letterRendering: boolean;
-        logging: boolean;
-        width?: number;
-        windowWidth: number;
-        x: number;
-        y: number;
-    };
-    jsPDF: {
-        unit: 'pt' | 'mm' | 'cm' | 'in' | 'px' | 'pc' | 'em' | 'ex';
-        format: 'a4' | 'a3' | 'a5' | 'letter' | 'legal';
-        orientation: 'portrait' | 'landscape';
-        putOnlyUsedFonts: boolean;
-        precision: 16;
-        compress: boolean;
-        userUnit: number;
-    };
-    pagebreak: {
-        mode: string[];
-        before: string[];
-        after: string[];
-        avoid: string[];
-    };
-}
-
 export const generatePDF = async (elementId: string, options: PDFOptions) => {
     const element = document.getElementById(elementId);
     if (!element) {
         throw new Error('Element not found');
     }
 
-    const opt: Html2PdfOptionsExtended = {
-        margin: 0, // Set this to 0
-        filename: options.filename || 'resume.pdf',
-        image: {
-            type: 'jpeg',
-            quality: 0.98,
-        },
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
-            letterRendering: true,
-            logging: false,
-            windowWidth: 794,
-            x: 0, // Add this to remove left margin
-            y: 0, // Add this to remove top margin
-        },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait',
-            putOnlyUsedFonts: true,
-            compress: true,
-            precision: 16,
-            userUnit: 1.0,
-        },
-        pagebreak: {
-            mode: ['css', 'avoid-all'],
-            before: ['.page-break-before'],
-            after: ['.page-break-after'],
-            avoid: ['.page-break-avoid'],
-        },
-    };
+    // Create a deep clone of the element
+    const clone = element.cloneNode(true) as HTMLElement;
 
+    // Create a temporary container with specific styling
+    const container = document.createElement('div');
+    container.appendChild(clone);
+    container.style.width = '210mm';
+    container.style.margin = '0 auto';
+    container.style.padding = '0';
+    container.style.position = 'absolute';
+    container.style.left = '0';
+    container.style.top = '0';
+    document.body.appendChild(container);
+    console.log(options);
     try {
-        return await html2pdf(element, opt);
+        const marginValue = Number(options.margins.replace('mm', ''));
+
+        // Log dimensions before PDF generation
+        console.log('Element dimensions:', {
+            offsetWidth: element.offsetWidth,
+            clientWidth: element.clientWidth,
+            scrollWidth: element.scrollWidth,
+            getBoundingClientRect: element.getBoundingClientRect(),
+        });
+
+        // Remove the problematic styles that were causing text overlap
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+            @page {
+                margin: 0;
+                size: A4;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        `;
+        clone.appendChild(styleElement);
+
+        const opt = {
+            margin: [marginValue, 0, marginValue, 0] as [number, number, number, number],
+            filename: options.filename || 'resume.pdf',
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait' as const,
+            },
+            pagebreak: {
+                mode: ['avoid-all'],
+            },
+        };
+
+        await html2pdf().from(clone).set(opt).save();
     } catch (error) {
         console.error('Error generating PDF:', error);
         throw error;
+    } finally {
+        document.body.removeChild(container);
     }
 };

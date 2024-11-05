@@ -7,7 +7,7 @@ import { generatePDF } from '@/lib/utils';
 
 interface ResumeTemplateProps {
     content: ResumeData;
-    style: 'classic' | 'modern';
+    style: 'classic' | 'modern' | 'modern-pdf';
     styleCustomization: StyleCustomization;
     onSectionClick: (section: string) => void;
 }
@@ -24,26 +24,9 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
     onSectionClick,
 }) => {
     const renderSection = (title: string, children: React.ReactNode, sectionKey: string) => (
-        <section
-            className="mb-8 hover:bg-gray-50 cursor-pointer rounded-md transition-colors page-break-inside-auto"
-            onClick={() => onSectionClick(sectionKey)}
-            style={{
-                margin: '0 0 2rem 0',
-                pageBreakInside: 'auto',
-            }}
-        >
-            <h2
-                className="font-bold page-break-after-avoid"
-                style={{
-                    borderBottom: '1px solid black',
-                    paddingBottom: '0.5rem',
-                    marginBottom: '1rem',
-                    pageBreakAfter: 'avoid',
-                }}
-            >
-                {title}
-            </h2>
-            <div className="page-break-inside-auto">{children}</div>
+        <section className="resume-section clearfix" onClick={() => onSectionClick(sectionKey)}>
+            <h2 className="font-bold border-b border-black pb-2 mb-4">{title}</h2>
+            <div className="resume-content">{children}</div>
         </section>
     );
 
@@ -111,7 +94,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                     'Experience',
                     <div className="space-y-4">
                         {content.experience.map((exp, index) => (
-                            <div key={index} className="page-break-avoid">
+                            <div key={index} className="resume-entry mb-4">
                                 <div className="flex justify-between items-start mb-1">
                                     <div>
                                         <div className="font-bold text-gray-900">{exp.title}</div>
@@ -141,7 +124,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                     'Education',
                     <div className="space-y-4">
                         {content.education.map((edu, index) => (
-                            <div key={index} className="page-break-avoid">
+                            <div key={index} className="resume-entry mb-4">
                                 <div className="flex justify-between items-start mb-1">
                                     <div>
                                         <div className="font-bold text-gray-900">
@@ -224,12 +207,32 @@ export function ResumeTemplate({
     const handleGeneratePDF = async () => {
         try {
             setIsGenerating(true);
+            const contentElement = document.getElementById('resume-content');
+            if (!contentElement) {
+                console.error('Resume content element not found');
+                return;
+            }
+
+            // Store original padding
+            const originalPadding = contentElement.style.padding;
+            // Remove padding for PDF generation
+            contentElement.style.paddingTop = '0';
+            contentElement.style.paddingBottom = '0';
+            // Remove any print:hidden elements temporarily
+            const printHiddenElements = contentElement.querySelectorAll('.print\\:hidden');
+            printHiddenElements.forEach((el) => el.classList.add('hidden'));
+
             await generatePDF('resume-content', {
-                margins: styleCustomization.margins,
+                margins: String(styleCustomization.margins || 20),
                 filename: `${content.personalInfo.name
                     .toLowerCase()
                     .replace(/\s+/g, '-')}-resume.pdf`,
             });
+
+            // Restore original padding and elements
+            contentElement.style.paddingTop = originalPadding;
+            contentElement.style.paddingBottom = originalPadding;
+            printHiddenElements.forEach((el) => el.classList.remove('hidden'));
         } catch (error) {
             console.error('Failed to generate PDF:', error);
         } finally {
@@ -240,7 +243,7 @@ export function ResumeTemplate({
     return (
         <div className="flex flex-col items-center w-full bg-gray-100 p-4">
             {/* Print Button */}
-            <div className="w-[210mm] mb-4 flex justify-end">
+            <div className="w-[210mm] mb-4 flex justify-end print:hidden">
                 <button
                     onClick={handleGeneratePDF}
                     disabled={isGenerating}
@@ -256,25 +259,20 @@ export function ResumeTemplate({
                 id="resume-content"
                 className="w-[210mm] bg-white shadow-lg"
                 style={{
-                    margin: 0,
-                    padding: 0,
+                    padding: `${styleCustomization.margins || '20mm'}`,
                     boxSizing: 'border-box',
+                    minHeight: '297mm',
+                    height: 'auto',
                     position: 'relative',
+                    visibility: 'visible',
+                    display: 'block',
                 }}
             >
-                <div
-                    style={{
-                        padding: styleCustomization.margins,
-                        margin: 0,
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    <ModernTemplate
-                        content={content}
-                        styleCustomization={styleCustomization}
-                        onSectionClick={onSectionClick}
-                    />
-                </div>
+                <ModernTemplate
+                    content={content}
+                    styleCustomization={styleCustomization}
+                    onSectionClick={onSectionClick}
+                />
             </div>
         </div>
     );
