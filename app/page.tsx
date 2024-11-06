@@ -8,11 +8,11 @@ export default async function Home() {
     const session = await getSession();
 
     return (
-        <div className="min-h-screen bg-background text-foreground print:bg-white print:!p-0 print:!m-0">
-            <Header className="print:hidden" />
-            <div className="print:!p-0 print:!m-0">
+        <div className="min-h-screen bg-background text-foreground">
+            <Header />
+            <div>
                 {!session?.user ? (
-                    <div className="print:hidden">
+                    <div>
                         <LandingPage />
                     </div>
                 ) : (

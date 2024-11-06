@@ -15,15 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <head>
-                <style>{`
-                    @media print {
-                        @page { margin: 0; }
-                        body { margin: 0; }
-                    }
-                `}</style>
-            </head>
-            <body className={`${inter.className} print:!p-0 print:!m-0`}>
+            <body className={inter.className} data-cz-shortcut-listen="true">
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                     <UserProvider>{children}</UserProvider>
                 </ThemeProvider>

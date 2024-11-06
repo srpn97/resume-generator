@@ -21,6 +21,7 @@ export function ResumeBuilder() {
         spacing: '1.5',
         fontSize: '14px',
         fontFamily: 'Inter, sans-serif',
+        pageSize: 'a4',
         titleBreak: {
             education: false,
             experience: false,

@@ -90,3 +90,18 @@ section + section {
 .section + .section {
     margin-top: 1.5rem;
 }
+
+@media print {
+    #resume-content {
+        page-break-after: always;
+    }
+}
+
+.page-break-indicator {
+    @media screen {
+        display: block;
+    }
+    @media print {
+        display: none;
+    }
+}

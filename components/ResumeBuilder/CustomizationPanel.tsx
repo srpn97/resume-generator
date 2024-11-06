@@ -126,6 +126,20 @@ export function CustomizationPanel({
                         </label>
                     </div>
                 </div>
+
+                <div>
+                    <label className="text-sm text-muted-foreground">Page Size</label>
+                    <select
+                        value={styleCustomization.pageSize}
+                        onChange={(e) =>
+                            onStyleChange({ pageSize: e.target.value as 'a4' | 'letter' })
+                        }
+                        className="w-full rounded-md border p-2 mt-1"
+                    >
+                        <option value="a4">A4 (210 × 297 mm)</option>
+                        <option value="letter">US Letter (215.9 × 279.4 mm)</option>
+                    </select>
+                </div>
             </div>
         </div>
     );

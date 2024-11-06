@@ -46,6 +46,7 @@ export interface StyleCustomization {
     spacing: string;
     fontSize: string;
     fontFamily: string;
+    pageSize: 'a4' | 'letter';
     titleBreak: {
         education: boolean;
         experience: boolean;
