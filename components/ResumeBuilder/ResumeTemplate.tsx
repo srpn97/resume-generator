@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ResumeData, StyleCustomization } from '@/types/resume';
 import { ModernTemplate } from './ModernTemplate';
+import { Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ResumeTemplateProps {
     content: ResumeData;
@@ -17,41 +19,7 @@ export function ResumeTemplate({
     styleCustomization,
     onSectionClick,
 }: ResumeTemplateProps) {
-    const [pageBreaks, setPageBreaks] = useState<React.ReactNode[]>([]);
-
-    useEffect(() => {
-        const calculatePageBreaks = () => {
-            const container = document.getElementById('resume-content');
-            if (!container) return;
-
-            const contentHeight = container.scrollHeight;
-            const numberOfPages = Math.ceil(contentHeight / pageHeightPx);
-            const newIndicators = [];
-
-            for (let i = 1; i < numberOfPages; i++) {
-                const positionPx = i * pageHeightPx - marginPx;
-                newIndicators.push(
-                    <div
-                        key={i}
-                        className="absolute flex items-center gap-1 right-0 text-xs text-gray-500"
-                        style={{
-                            top: `${positionPx}px`,
-                        }}
-                    >
-                        <div className="w-4 border-t border-dashed border-gray-400" />
-                        <span>Page {i}</span>
-                    </div>
-                );
-            }
-
-            setPageBreaks(newIndicators);
-        };
-
-        calculatePageBreaks();
-
-        window.addEventListener('resize', calculatePageBreaks);
-        return () => window.removeEventListener('resize', calculatePageBreaks);
-    }, [content, styleCustomization]);
+    const [isPrinting, setIsPrinting] = useState(false);
 
     const pageDimensions = {
         a4: {
@@ -66,37 +34,133 @@ export function ResumeTemplate({
 
     const { width, height } = pageDimensions[styleCustomization.pageSize];
     const margin = styleCustomization.margins;
-    const marginValue = parseInt(margin);
 
-    // Convert mm to px for calculations (1mm ≈ 3.7795275591px)
-    const mmToPx = 3.7795275591;
-    const pageHeightPx = parseFloat(height) * mmToPx;
-    const marginPx = marginValue * mmToPx;
-    const contentHeightPerPage = pageHeightPx - 2 * marginPx;
+    useEffect(() => {
+        const beforePrint = () => setIsPrinting(true);
+        const afterPrint = () => setIsPrinting(false);
+
+        window.addEventListener('beforeprint', beforePrint);
+        window.addEventListener('afterprint', afterPrint);
+
+        return () => {
+            window.removeEventListener('beforeprint', beforePrint);
+            window.removeEventListener('afterprint', afterPrint);
+        };
+    }, []);
+
+    const handlePrint = useCallback(() => {
+        window.print();
+    }, []);
 
     return (
-        <div className="flex flex-col items-center w-full bg-gray-100 p-4">
-            <div className="relative">
-                <div
-                    id="resume-content"
-                    className="bg-white shadow-lg"
-                    style={{
-                        width,
-                        minHeight: height,
-                        height: 'auto',
-                        padding: margin,
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    <ModernTemplate
-                        content={content}
-                        styleCustomization={styleCustomization}
-                        onSectionClick={onSectionClick}
-                    />
+        <>
+            <style jsx global>{`
+                @page {
+                    size: ${styleCustomization.pageSize};
+                    margin: ${margin};
+                }
+
+                @media screen {
+                    #resume-content {
+                        width: ${width};
+                        min-height: ${height};
+                        padding: ${margin};
+                        background: white;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                }
+
+                @media print {
+                    html,
+                    body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                    }
+
+                    body * {
+                        visibility: hidden;
+                    }
+
+                    .print-container {
+                        visibility: visible;
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+
+                    #resume-content {
+                        visibility: visible;
+                        display: block !important;
+                        position: relative !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+
+                    #resume-content * {
+                        visibility: visible;
+                        overflow: visible !important;
+                    }
+
+                    .print-hide,
+                    .print-hidden {
+                        display: none !important;
+                    }
+
+                    /* Control section breaks */
+                    .section {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+
+                    /* Prevent orphaned headers */
+                    h1,
+                    h2,
+                    h3,
+                    h4,
+                    h5,
+                    h6 {
+                        page-break-after: avoid;
+                        break-after: avoid;
+                    }
+
+                    /* Keep list items together when possible */
+                    li {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                }
+            `}</style>
+
+            <div className="print-container flex flex-col items-center w-full bg-gray-100 p-4 print:p-0 print:bg-white">
+                <div className="w-full max-w-[${width}] mb-4 flex justify-end print:hidden">
+                    <Button
+                        onClick={handlePrint}
+                        className="flex items-center gap-2 print:hidden"
+                        variant="outline"
+                    >
+                        <Printer className="h-4 w-4" />
+                        Print Resume
+                    </Button>
                 </div>
-                {/* {pageBreaks} */}
-                {/* uncomment this line for page breaks */}
+                <div className="relative flex justify-center w-full print:block print:w-full">
+                    <div id="resume-content">
+                        <ModernTemplate
+                            content={content}
+                            styleCustomization={styleCustomization}
+                            onSectionClick={onSectionClick}
+                        />
+                    </div>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
